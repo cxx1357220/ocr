@@ -6,6 +6,7 @@ from io import BytesIO
 import sys
 import json
 import time
+import multiprocessing
 def runOcr():
     startTime = time.time()
     ocr = PaddleOCR(lang='ch') # need to run only once to download and load model into memory
@@ -48,7 +49,6 @@ app.config['JSON_AS_ASCII'] = False
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
 
-ocr = PaddleOCR(lang='ch')
 
 @app.route('/')
 def index():
@@ -86,6 +86,7 @@ def upload_file():
         # 在这里可以对图像进行各种处理
         # 例如获取图像的尺寸
         height, width, channels = img.shape
+        ocr = PaddleOCR(lang='ch')
         result = ocr.ocr(img, cls=False)
         print( result[0])
         if result[0] == None:
@@ -104,5 +105,6 @@ def upload_file():
     else:
         return jsonify({"error": "File type not allowed"}), 400
 if __name__ == '__main__':
+    multiprocessing.freeze_support()
     port = int(os.environ.get('PORT', 5000))
     app.run(debug=True, host='0.0.0.0', port=port)
